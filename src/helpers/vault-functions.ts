@@ -66,7 +66,11 @@ export function getStrategy(address: string, signer: Signer) {
 // skip impersonate account
 // skip transfer DAI to signers because I believe that is just simulation
 
-// deploy Controller contract
-// deploy Vault contract
+// deployed Controller contract at 0xffa7CA1AEEEbBc30C874d32C7e22F052BbEa0429
+// deployed Vault contract at 0x3aAde2dCD2Df6a8cAc689EE797591b2913658659
+// deployed Strategy contract at 0xab16A69A5a8c12C732e0DEFF4BE56A70bb64c926
 
 // blogger gets router, weth, and factory contracts he had deployed previously
+// connect to localhost network on metamask
+// run some transactions
+// metamask should pop up

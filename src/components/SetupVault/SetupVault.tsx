@@ -1,4 +1,4 @@
-import React, { FormEvent, useState } from 'react';
+import React, { FormEvent, useEffect, useState } from 'react';
 import { CoinDialog } from '../CoinDialog/CoinDialog';
 import { CoinField } from '../CoinField/CoinField';
 import { Loading } from '../Loading/Loading';
@@ -154,10 +154,35 @@ export const SetupVault: React.FC<props> = (props) => {
   // write Ethereum function to do vault functions then call it here
 
   // use effects
+  // This hook is called when either of the state variables `coin1.address` or `coin2.address` change.
+  // This means that when the user selects a different coin to convert between, or the coins are swapped,
+  // the new reserves will be calculated.
+  useEffect(() => {
+    console.log(
+      'Trying to get Reserves between:\n' + coin1.address + '\n' + coin2.address
+    );
+
+    if (coin1.address && coin2.address) {
+      getReserves(
+        coin1.address,
+        coin2.address,
+        props.network.factory,
+        props.network.signer,
+        props.network.account
+      ).then((data) => setReserves(data));
+    }
+  }, [
+    coin1.address,
+    coin2.address,
+    props.network.account,
+    props.network.factory,
+    props.network.router,
+    props.network.signer,
+  ]);
 
   return (
     <div>
-      <CoinDialog></CoinDialog>
+      <CoinDialog open={false}></CoinDialog>
       <h1>Setup Vault</h1>
       <p>Easy way to trade your tokens</p>
     </div>
