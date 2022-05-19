@@ -62,14 +62,7 @@ function Activate() {
   useInactiveListener(!eagerConnectionSuccessful);
 
   return (
-    <button>
-      disabled={active}
-      style={{
-        cursor: active ? 'not-allowed' : 'pointer',
-        borderColor: activating ? 'orange' : active ? 'unset' : 'green',
-      }}
-      onClick={handleActivate}
-    >
+    <button disabled={active} onClick={handleActivate}>
       Connect
     </button>
   );
@@ -86,16 +79,9 @@ function Deactivate(): ReactElement {
   }
 
   return (
-    <StyledDeactivateButton
-      disabled={!active}
-      style={{
-        cursor: active ? 'pointer' : 'not-allowed',
-        borderColor: active ? 'red' : 'unset',
-      }}
-      onClick={handleDeactivate}
-    >
+    <button disabled={!active} onClick={handleDeactivate}>
       Disconnect
-    </StyledDeactivateButton>
+    </button>
   );
 }
 
@@ -108,9 +94,9 @@ export function ActivateDeactivate(): ReactElement {
   }
 
   return (
-    <StyledActivateDeactivateDiv>
+    <div>
       <Activate />
       <Deactivate />
-    </StyledActivateDeactivateDiv>
+    </div>
   );
 }
