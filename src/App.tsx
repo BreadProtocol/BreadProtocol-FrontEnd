@@ -3,13 +3,16 @@ import './App.css';
 import { NavBar } from './components';
 import { ActivateDeactivate } from './components/ActivateDeactivate';
 import { Vault } from './components/Vault';
+import { Controller } from './context/Controller';
 
 function App() {
   return (
     <div className='App'>
       <NavBar />
       <ActivateDeactivate />
-      <Vault />
+      <Controller>
+        <Vault />
+      </Controller>
     </div>
   );
 }

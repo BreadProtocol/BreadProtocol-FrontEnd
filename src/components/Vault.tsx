@@ -8,9 +8,9 @@ import {
   useState,
 } from 'react';
 import { Provider } from '../helpers/provider';
-import ControllerArtifact from '../artifacts/contracts/yearn-v2/Controller.sol/Controller.json';
 import VaultArtifact from '../artifacts/contracts/yearn-v2/Vault.sol/Vault.json';
 import StrategtArtifact from '../artifacts/contracts/yearn-v2/StrategyDAICompoundBasic.sol/StrategyDAICompoundBasic.json';
+import { useController } from '../hooks/useController';
 
 export function Vault(): ReactElement {
   // general
@@ -19,12 +19,8 @@ export function Vault(): ReactElement {
   const [signer, setSigner] = useState<Signer>();
 
   // controller
-  const [controllerContract, setControllerContract] = useState<Contract>();
-  const [controllerContractAddress, setControllerContractAddress] =
-    useState<string>('');
-  const TREASURY_Y_CHAD_ETH_YEARN_REWARDS: string =
-    '0xfeb4acf3df3cdea7399794d0869ef76a6efaff52'; // rewards address for controller
-
+  // const { controllerContract } = useController();
+  const controllerContract = useController();
   // vault
   const DAI_ADDRESS = '0x6b175474e89094c44da98b954eedeac495271d0f'; // underlying asset of vault
   const [vaultContract, SetvaultContract] = useState<Contract>();
@@ -69,46 +65,6 @@ export function Vault(): ReactElement {
   }, [strategyContract]);
 
   ////////////////////////////////////////////////////////////////////
-  /////////------HANDLE DEPLOY CONTROLLER CONTRACT------//////////////
-  ////////////////////////////////////////////////////////////////////
-  function handleDeployController(event: MouseEvent<HTMLButtonElement>) {
-    event.preventDefault();
-
-    // only deploy the Controller contract one time, when a signer is defined
-    if (controllerContract || !signer) {
-      return;
-    }
-
-    async function deployControllerContract(signer: Signer): Promise<void> {
-      const Controller = new ethers.ContractFactory(
-        ControllerArtifact.abi,
-        ControllerArtifact.bytecode,
-        signer
-      );
-
-      try {
-        const controllerContract = await Controller.deploy(
-          TREASURY_Y_CHAD_ETH_YEARN_REWARDS
-        );
-
-        await controllerContract.deployed();
-
-        setControllerContract(controllerContract);
-
-        window.alert(`Controller deployed to: ${controllerContract!.address}`);
-
-        setControllerContractAddress(controllerContract!.address);
-      } catch (error: any) {
-        window.alert(
-          'Error!' + (error && error.message ? `\n\n${error.message}` : '')
-        );
-      }
-    }
-
-    deployControllerContract(signer);
-  }
-
-  ////////////////////////////////////////////////////////////////////
   /////////------ HANDLE DEPLOY VAULT CONTRACT ------/////////////////
   ////////////////////////////////////////////////////////////////////
   async function handleDeployVault(event: MouseEvent<HTMLButtonElement>) {
@@ -134,7 +90,7 @@ export function Vault(): ReactElement {
           name,
           symbol,
           address, // thinking signer because it was deployer in Vault-fun else governance
-          controllerContractAddress
+          controllerContract.address // controllerContract
         );
 
         // const greeting = await controllerContract.greet();
@@ -189,7 +145,7 @@ export function Vault(): ReactElement {
 
       try {
         const strategyContract = await Strategy.deploy(
-          controllerContractAddress
+          controllerContract.address
         );
 
         await strategyContract.deployed();
@@ -211,7 +167,7 @@ export function Vault(): ReactElement {
   return (
     <div>
       {/* CONTROLLER */}
-      <div>
+      {/* <div>
         <button
           disabled={!active || controllerContract ? true : false}
           onClick={handleDeployController}
@@ -229,7 +185,7 @@ export function Vault(): ReactElement {
           </div>
         </div>
       </div>
-      <hr />
+      <hr /> */}
       {/* VAULT */}
       <div>
         <label htmlFor='name'>Name</label>

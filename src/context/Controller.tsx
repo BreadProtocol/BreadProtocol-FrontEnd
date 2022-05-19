@@ -6,48 +6,19 @@ import {
   ReactElement,
   useEffect,
   useState,
-  useContext,
 } from 'react';
 import { Provider } from '../helpers/provider';
 import ControllerArtifact from '../artifacts/contracts/yearn-v2/Controller.sol/Controller.json';
 
-/**
- * A helper to create a Context and Provider with no upfront default value, and
- * without having to check for undefined all the time.
- */
-function createCtx<A extends {} | null>() {
-  const ctx = createContext<A | undefined>(undefined);
-  function useCtx() {
-    const c = useContext(ctx);
-    if (c === undefined)
-      throw new Error('useCtx must be inside a Provider with a value');
-    return c;
-  }
-  return [useCtx, ctx.Provider] as const; // 'as const' makes TypeScript infer a tuple
-}
+export const ControllerContext = createContext<Contract | undefined>(undefined);
+ControllerContext.displayName = 'ControllerContext';
 
-// Usage:
-// We still have to specify a type, but no default!
-export const [useController, ControllerProvider] = createCtx<Contract>();
-
-function ControllerContract() {
-  const controller = useController();
-  return (
-    <div>
-      <p>{controller.address}</p>
-    </div>
-  );
-}
-
-// function App() {
-//   return (
-//     <CurrentUserProvider value='Anders'>
-//       <EnthusasticGreeting />
-//     </CurrentUserProvider>
-//   );
+// function Vault() {
+//   const currentUser = useContext(ControllerContext);
+//   return <div>HELLO {currentUser?.address!}!</div>;
 // }
 
-export function Controller(): ReactElement {
+export function Controller({ children }: { children: any }): ReactElement {
   const context = useWeb3React<Provider>();
   const { library, active } = context;
 
@@ -73,8 +44,10 @@ export function Controller(): ReactElement {
     }
   }, [controllerContract]);
 
-  // HANDLE DEPLOY CONTRACT
-  function handleDeployContract(event: MouseEvent<HTMLButtonElement>) {
+  ////////////////////////////////////////////////////////////////////
+  /////////------HANDLE DEPLOY CONTROLLER CONTRACT------//////////////
+  ////////////////////////////////////////////////////////////////////
+  function handleDeployController(event: MouseEvent<HTMLButtonElement>) {
     event.preventDefault();
 
     // only deploy the Controller contract one time, when a signer is defined
@@ -96,8 +69,6 @@ export function Controller(): ReactElement {
 
         await controllerContract.deployed();
 
-        // const greeting = await controllerContract.greet();
-
         setControllerContract(controllerContract);
 
         window.alert(`Controller deployed to: ${controllerContract!.address}`);
@@ -114,28 +85,29 @@ export function Controller(): ReactElement {
   }
 
   return (
-    <ControllerProvider value={controllerContract}>
-      <ControllerContract />
-    </ControllerProvider>
-  );
-  return (
-    <div>
-      <button
-        disabled={!active || controllerContract ? true : false}
-        onClick={handleDeployContract}
-      >
-        Deploy Controller Contract
-      </button>
+    <ControllerContext.Provider value={controllerContract}>
       <div>
-        <b>Controller Contract Address:</b>
+        <b>
+          <h1>CONTROLLER CONTEXT PROVIDER</h1>
+        </b>
+        <button
+          disabled={!active || controllerContract ? true : false}
+          onClick={handleDeployController}
+        >
+          Deploy Controller Contract
+        </button>
         <div>
-          {controllerContract ? (
-            controllerContractAddress
-          ) : (
-            <em>{`<Contract not yet deployed>`}</em>
-          )}
+          <b>Controller Contract Address:</b>
+          <div>
+            {controllerContract ? (
+              controllerContractAddress
+            ) : (
+              <em>{`<Contract not yet deployed>`}</em>
+            )}
+          </div>
         </div>
+        {children}
       </div>
-    </div>
+    </ControllerContext.Provider>
   );
 }

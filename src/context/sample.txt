@@ -1,0 +1,30 @@
+import react {usecontext}
+import blockchaincontext from './blockchaincontext'
+
+export default function ChildComponent() {
+  const blockchain = usecontext(blockchaincontext)
+  const {web3, contract, accounts} = blockchain
+}
+
+import react, {usestate, useeffect}
+import storagecontract from storagecontract.json
+import blockchainContext from blockchainContext
+
+function App() {
+  usestate()
+  usestate()
+  useeffect({}, []) 
+  useeffect({}, []) 
+
+  return (
+    <div classname=app>
+      <blockchain.provider value={{web3, contract, accounts}}>
+      <h1>Hello World<h1>
+      <ChildComponent>
+      <blockchain.provider>
+    <div>
+  )
+}
+
+import react
+export default React.createContext(undefined)
