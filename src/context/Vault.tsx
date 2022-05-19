@@ -2,6 +2,7 @@ import { useWeb3React } from '@web3-react/core';
 import { Contract, ethers, Signer } from 'ethers';
 import {
   ChangeEvent,
+  createContext,
   MouseEvent,
   ReactElement,
   useEffect,
@@ -9,18 +10,20 @@ import {
 } from 'react';
 import { Provider } from '../helpers/provider';
 import VaultArtifact from '../artifacts/contracts/yearn-v2/Vault.sol/Vault.json';
-import StrategtArtifact from '../artifacts/contracts/yearn-v2/StrategyDAICompoundBasic.sol/StrategyDAICompoundBasic.json';
 import { useController } from '../hooks/useController';
 
-export function Vault(): ReactElement {
+export const VaultContext = createContext<Contract | undefined>(undefined);
+VaultContext.displayName = 'VaultContext';
+
+export function Vault({ children }: { children: any }): ReactElement {
   // general
   const context = useWeb3React<Provider>();
-  const { library, active } = context;
+  const { active, library } = context;
   const [signer, setSigner] = useState<Signer>();
 
   // controller
-  // const { controllerContract } = useController();
   const controllerContract = useController();
+
   // vault
   const DAI_ADDRESS = '0x6b175474e89094c44da98b954eedeac495271d0f'; // underlying asset of vault
   const [vaultContract, SetvaultContract] = useState<Contract>();
@@ -28,18 +31,12 @@ export function Vault(): ReactElement {
   const [name, setName] = useState<string>('');
   const [symbol, setSymbol] = useState<string>('');
 
-  // strategy
-  const [strategyContract, setStrategyContract] = useState<Contract>();
-  const [strategyContractAddress, setStrategyContractAddress] =
-    useState<string>('');
-
   // general use effect
   useEffect((): void => {
     if (!library) {
       setSigner(undefined);
       return;
     }
-
     setSigner(library.getSigner());
   }, [library]);
 
@@ -56,13 +53,6 @@ export function Vault(): ReactElement {
       return;
     }
   }, [vaultContract]);
-
-  // strategy use effect
-  useEffect((): void => {
-    if (!strategyContract) {
-      return;
-    }
-  }, [strategyContract]);
 
   ////////////////////////////////////////////////////////////////////
   /////////------ HANDLE DEPLOY VAULT CONTRACT ------/////////////////
@@ -123,76 +113,20 @@ export function Vault(): ReactElement {
     setSymbol(event.target.value);
   }
 
-  ////////////////////////////////////////////////////////////////////
-  /////////------HANDLE DEPLOY STRATEGY CONTRACT------////////////////
-  ////////////////////////////////////////////////////////////////////
-
-  async function handleDeployStrategy(event: MouseEvent<HTMLButtonElement>) {
-    event.preventDefault();
-
-    // only deploy the vault contract when a signer and controller and vault are defined
-    // user should be able to deploy more than one strategy (to use more than one vault)
-    if (!signer || !controllerContract || !vaultContract) {
-      return;
-    }
-
-    async function deployStrategyContract(signer: Signer): Promise<void> {
-      const Strategy = new ethers.ContractFactory(
-        StrategtArtifact.abi,
-        StrategtArtifact.bytecode,
-        signer
-      );
-
-      try {
-        const strategyContract = await Strategy.deploy(
-          controllerContract.address
-        );
-
-        await strategyContract.deployed();
-
-        setStrategyContract(strategyContract);
-
-        window.alert(`Strategy deployed to: ${strategyContract.address}`);
-
-        setStrategyContractAddress(strategyContract.address);
-      } catch (error: any) {
-        window.alert(
-          'Error!' + (error && error.message ? `\n\n${error.message}` : '')
-        );
-      }
-    }
-
-    deployStrategyContract(signer);
-  }
   return (
-    <div>
-      {/* CONTROLLER */}
-      {/* <div>
-        <button
-          disabled={!active || controllerContract ? true : false}
-          onClick={handleDeployController}
-        >
-          Deploy Controller Contract
-        </button>
-        <div>
-          <b>Controller Contract Address:</b>
-          <div>
-            {controllerContract ? (
-              controllerContractAddress
-            ) : (
-              <em>{`<Controller Contract not yet deployed>`}</em>
-            )}
-          </div>
-        </div>
-      </div>
-      <hr /> */}
-      {/* VAULT */}
+    <VaultContext.Provider value={vaultContract}>
       <div>
+        <b>
+          <h1>VAULT CONTEXT PROVIDER</h1>
+        </b>
         <label htmlFor='name'>Name</label>
         <input type='text' name='name' onChange={handleNameInput} />
         <label htmlFor='symbol'>Symbol</label>
         <input type='text' name='symbol' onChange={handleSymbolInput} />
-        <button disabled={!active} onClick={handleDeployVault}>
+        <button
+          disabled={!active || !name || !symbol}
+          onClick={handleDeployVault}
+        >
           Deploy Vault Contract
         </button>
         <div>
@@ -205,24 +139,9 @@ export function Vault(): ReactElement {
             )}
           </div>
         </div>
+        <hr />
+        {children}
       </div>
-      <hr />
-      {/* STRATEGY */}
-      <div>
-        <button disabled={!active} onClick={handleDeployStrategy}>
-          Deploy Strategy Contract
-        </button>
-        <div>
-          <b>Strategy Contract Address:</b>
-          <div>
-            {strategyContract ? (
-              strategyContractAddress
-            ) : (
-              <em>{`<Strategy Contract not yet deployed>`}</em>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
+    </VaultContext.Provider>
   );
 }

@@ -13,11 +13,7 @@ import ControllerArtifact from '../artifacts/contracts/yearn-v2/Controller.sol/C
 export const ControllerContext = createContext<Contract | undefined>(undefined);
 ControllerContext.displayName = 'ControllerContext';
 
-// function Vault() {
-//   const currentUser = useContext(ControllerContext);
-//   return <div>HELLO {currentUser?.address!}!</div>;
-// }
-
+// TODO: FIX: change type of children from any
 export function Controller({ children }: { children: any }): ReactElement {
   const context = useWeb3React<Provider>();
   const { library, active } = context;
@@ -29,6 +25,7 @@ export function Controller({ children }: { children: any }): ReactElement {
   const TREASURY_Y_CHAD_ETH_YEARN_REWARDS: string =
     '0xfeb4acf3df3cdea7399794d0869ef76a6efaff52';
 
+  // general use effect
   useEffect((): void => {
     if (!library) {
       setSigner(undefined);
@@ -38,6 +35,7 @@ export function Controller({ children }: { children: any }): ReactElement {
     setSigner(library.getSigner());
   }, [library]);
 
+  // controller use effect
   useEffect((): void => {
     if (!controllerContract) {
       return;
@@ -102,10 +100,11 @@ export function Controller({ children }: { children: any }): ReactElement {
             {controllerContract ? (
               controllerContractAddress
             ) : (
-              <em>{`<Contract not yet deployed>`}</em>
+              <em>{`<Controller Contract not yet deployed>`}</em>
             )}
           </div>
         </div>
+        <hr />
         {children}
       </div>
     </ControllerContext.Provider>
