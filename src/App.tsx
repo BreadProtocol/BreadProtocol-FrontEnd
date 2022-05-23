@@ -2,21 +2,23 @@ import React from 'react';
 import './App.css';
 import { NavBar } from './components';
 import { ActivateDeactivate } from './components/ActivateDeactivate';
-// import { Vault } from './components/Vault';
-import { Controller } from './context/Controller';
-import { Vault } from './context/Vault';
+import { Controller, SignerAccount, Vault } from './context';
 import { Strategy } from './components/Strategy';
+import { VaultBox } from './components/VaultBox/VaultBox';
 
 function App() {
   return (
     <div className='App'>
-      <NavBar />
-      <ActivateDeactivate />
-      <Controller>
-        <Vault>
-          <Strategy />
-        </Vault>
-      </Controller>
+      <SignerAccount>
+        <NavBar />
+        <ActivateDeactivate />
+        <Controller>
+          <Vault>
+            <VaultBox />
+            <Strategy />
+          </Vault>
+        </Controller>
+      </SignerAccount>
     </div>
   );
 }

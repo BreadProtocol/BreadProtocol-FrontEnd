@@ -10,16 +10,16 @@ import {
 } from 'react';
 import { Provider } from '../helpers/provider';
 import VaultArtifact from '../artifacts/contracts/yearn-v2/Vault.sol/Vault.json';
-import { useController } from '../hooks/useController';
+import { useController, useSigner } from '../hooks';
 
 export const VaultContext = createContext<Contract | undefined>(undefined);
 VaultContext.displayName = 'VaultContext';
 
 export function Vault({ children }: { children: any }): ReactElement {
-  // general
+  // signer
   const context = useWeb3React<Provider>();
-  const { active, library } = context;
-  const [signer, setSigner] = useState<Signer>();
+  const { active } = context;
+  const signer = useSigner();
 
   // controller
   const controllerContract = useController();
@@ -30,15 +30,6 @@ export function Vault({ children }: { children: any }): ReactElement {
   const [vaultContractAddress, setVaultContractAddress] = useState<string>('');
   const [name, setName] = useState<string>('');
   const [symbol, setSymbol] = useState<string>('');
-
-  // general use effect
-  useEffect((): void => {
-    if (!library) {
-      setSigner(undefined);
-      return;
-    }
-    setSigner(library.getSigner());
-  }, [library]);
 
   // controller use effect
   useEffect((): void => {

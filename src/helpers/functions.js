@@ -166,7 +166,8 @@ export async function getReserves(
 ) {
   try {
     const pairAddress = await factory.getPair(address1, address2);
-    const pair = new Contract(pairAddress, PAIR.abi, signer);
+    // const pair = new Contract(pairAddress, PAIR.abi, signer);
+    const pair = new Contract(pairAddress, ERC20_ABI.abi, signer);
 
     if (pairAddress !== '0x0000000000000000000000000000000000000000') {
       const reservesRaw = await fetchReserves(address1, address2, pair, signer);

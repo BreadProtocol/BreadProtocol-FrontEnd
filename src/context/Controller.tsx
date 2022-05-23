@@ -9,31 +9,39 @@ import {
 } from 'react';
 import { Provider } from '../helpers/provider';
 import ControllerArtifact from '../artifacts/contracts/yearn-v2/Controller.sol/Controller.json';
+import { useSigner } from '../hooks';
 
 export const ControllerContext = createContext<Contract | undefined>(undefined);
 ControllerContext.displayName = 'ControllerContext';
 
 // TODO: FIX: change type of children from any
 export function Controller({ children }: { children: any }): ReactElement {
-  const context = useWeb3React<Provider>();
-  const { library, active } = context;
+  // const context = useWeb3React<Provider>();
+  // const { library, active } = context;
+  // const [signer, setSigner] = useState<Signer>();
 
-  const [signer, setSigner] = useState<Signer>();
+  // signer
+  const context = useWeb3React<Provider>();
+  const { active } = context;
+  // const [signer, setSigner] = useState<Signer>();
+  const signer = useSigner();
+
+  // controller
   const [controllerContract, setControllerContract] = useState<Contract>();
   const [controllerContractAddress, setControllerContractAddress] =
     useState<string>('');
   const TREASURY_Y_CHAD_ETH_YEARN_REWARDS: string =
     '0xfeb4acf3df3cdea7399794d0869ef76a6efaff52';
 
-  // general use effect
-  useEffect((): void => {
-    if (!library) {
-      setSigner(undefined);
-      return;
-    }
+  // signer use effect
+  // useEffect((): void => {
+  //   if (!library) {
+  //     setSigner(undefined);
+  //     return;
+  //   }
 
-    setSigner(library.getSigner());
-  }, [library]);
+  //   setSigner(library.getSigner());
+  // }, [library]);
 
   // controller use effect
   useEffect((): void => {

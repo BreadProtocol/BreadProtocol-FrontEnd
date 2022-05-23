@@ -18,7 +18,7 @@ import {
 const CONTROLLER_ABI = require('../constants/Controller');
 const STRATEGY_DAI_COMPOUND_BASIC_ABI = require('../constants/StrategyDAICompoundBasic');
 const VAULT_ABI = require('../constants/Vault');
-const DAI_ABI = require('../constants/dai');
+export const DAI_ABI = require('../constants/dai');
 // const COMPTROLLER_ABI = require('../constants/Comptroller');
 // const CONVERTER_ABI = require('../constants/Converter');
 // const UNI_ABI = require('../constants/Uni');

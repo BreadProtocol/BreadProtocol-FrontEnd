@@ -1,0 +1,66 @@
+:root {
+  --yellow: #fdbd17;
+  --grey: #f9fafb;
+  --dark-grey: #9ca3af;
+  --input-grey: #d1d5db;
+}
+
+#VaultContainer {
+  font-family: 'DM Sans', sans-serif;
+  margin: 0 auto;
+  width: 440px;
+  border: 3px solid black;
+  border-radius: 16px;
+  padding: 16px;
+  h1 {
+    text-align: left;
+    margin-bottom: 0;
+    padding-left: 34px;
+  }
+  aside {
+    text-align: left;
+    color: var(--dark-grey);
+    padding-left: 34px;
+  }
+  button {
+    width: 366px;
+    height: 54px;
+    background-color: var(--yellow);
+    border: none;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    cursor: pointer;
+  }
+
+  .flip {
+    size: 2rem;
+    width: auto;
+    height: auto;
+    background-color: white;
+  }
+}
+
+.VaultDialog {
+  width: 366px;
+  height: 80px;
+  background-color: var(--grey);
+  margin: 4px auto;
+  border: 2px solid var(--yellow);
+  border-radius: 12px;
+  p {
+    margin-bottom: 0;
+  }
+  input {
+    font-size: 1em;
+    background-color: var(--grey);
+    border: none;
+    color: var(--input-grey);
+    // margin-bottom: 16px;
+  }
+
+  .VaultDialogForm {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+}

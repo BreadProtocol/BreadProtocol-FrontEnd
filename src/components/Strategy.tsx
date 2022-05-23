@@ -2,15 +2,15 @@ import { useWeb3React } from '@web3-react/core';
 import { Contract, ethers, Signer } from 'ethers';
 import { MouseEvent, ReactElement, useEffect, useState } from 'react';
 import { Provider } from '../helpers/provider';
-import StrategtArtifact from '../artifacts/contracts/yearn-v2/StrategyDAICompoundBasic.sol/StrategyDAICompoundBasic.json';
-import { useController } from '../hooks/useController';
+import StrategyArtifact from '../artifacts/contracts/yearn-v2/StrategyDAICompoundBasic.sol/StrategyDAICompoundBasic.json';
+import { useController, useSigner } from '../hooks/';
 import { useVault } from '../hooks/useVault';
 
 export function Strategy(): ReactElement {
-  // general
+  // signer
   const context = useWeb3React<Provider>();
-  const { active, library } = context;
-  const [signer, setSigner] = useState<Signer>();
+  const { active } = context;
+  const signer = useSigner();
 
   const controllerContract = useController();
   const vaultContract = useVault();
@@ -19,16 +19,6 @@ export function Strategy(): ReactElement {
   const [strategyContract, setStrategyContract] = useState<Contract>();
   const [strategyContractAddress, setStrategyContractAddress] =
     useState<string>('');
-
-  // general use effect
-  useEffect((): void => {
-    if (!library) {
-      setSigner(undefined);
-      return;
-    }
-
-    setSigner(library.getSigner());
-  }, [library]);
 
   // controller use effect
   useEffect((): void => {
@@ -66,8 +56,8 @@ export function Strategy(): ReactElement {
 
     async function deployStrategyContract(signer: Signer): Promise<void> {
       const Strategy = new ethers.ContractFactory(
-        StrategtArtifact.abi,
-        StrategtArtifact.bytecode,
+        StrategyArtifact.abi,
+        StrategyArtifact.bytecode,
         signer
       );
 
@@ -92,6 +82,29 @@ export function Strategy(): ReactElement {
 
     deployStrategyContract(signer);
   }
+
+  async function handleSetStrategy(event: MouseEvent<HTMLButtonElement>) {
+    event.preventDefault();
+    // set vault
+    // await controllerContract.setVault(DAI_ADDRESS, vaultContract.address);
+    // const greeting = await controllerContract.greet();
+    const DAI_ADDRESS = '0x6b175474e89094c44da98b954eedeac495271d0f'; // underlying asset of vault
+    await controllerContract.setVault(DAI_ADDRESS, vaultContract.address);
+    window.alert('Vault Set');
+
+    // approve strategy
+    // await controllerContract.approveStrategy(DAI_ADDRESS, strategyContract.address);
+    await controllerContract.approveStrategy(
+      DAI_ADDRESS,
+      strategyContractAddress
+    );
+    window.alert('Strategy Approved');
+
+    // set strategy
+    // await controllerContract.setStrategy(DAI_ADDRESS, strategyContract.address);
+    await controllerContract.setStrategy(DAI_ADDRESS, strategyContractAddress);
+    window.alert('Strategy Set');
+  }
   return (
     <div>
       {/* STRATEGY */}
@@ -110,6 +123,7 @@ export function Strategy(): ReactElement {
             )}
           </div>
         </div>
+        <button onClick={handleSetStrategy}>Set Strategy</button>
       </div>
     </div>
   );
