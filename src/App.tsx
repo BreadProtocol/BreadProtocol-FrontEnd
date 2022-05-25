@@ -1,10 +1,10 @@
 import React from 'react';
 import './App.css';
 import { NavBar } from './components';
-import { ActivateDeactivate } from './components/ActivateDeactivate';
-import { Controller, SignerAccount, Vault } from './context';
 import { Strategy } from './components/Strategy';
 import { VaultBox } from './components/VaultBox/VaultBox';
+import { ActivateDeactivate } from './components/ActivateDeactivate';
+import { Controller, SignerAccount, Vault } from './context';
 
 function App() {
   return (

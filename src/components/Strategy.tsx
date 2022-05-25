@@ -5,6 +5,7 @@ import { Provider } from '../helpers/provider';
 import StrategyArtifact from '../artifacts/contracts/yearn-v2/StrategyDAICompoundBasic.sol/StrategyDAICompoundBasic.json';
 import { useController, useSigner } from '../hooks/';
 import { useVault } from '../hooks/useVault';
+import { DAI_ADDRESS } from '../helpers/constants';
 
 export function Strategy(): ReactElement {
   // signer
@@ -13,7 +14,7 @@ export function Strategy(): ReactElement {
   const signer = useSigner();
 
   const controllerContract = useController();
-  const vaultContract = useVault();
+  const vaultContract = useVault(); // 0x38a024C0b412B9d1db8BC398140D00F5Af3093D4
 
   // strategy
   const [strategyContract, setStrategyContract] = useState<Contract>();
@@ -86,14 +87,10 @@ export function Strategy(): ReactElement {
   async function handleSetStrategy(event: MouseEvent<HTMLButtonElement>) {
     event.preventDefault();
     // set vault
-    // await controllerContract.setVault(DAI_ADDRESS, vaultContract.address);
-    // const greeting = await controllerContract.greet();
-    const DAI_ADDRESS = '0x6b175474e89094c44da98b954eedeac495271d0f'; // underlying asset of vault
     await controllerContract.setVault(DAI_ADDRESS, vaultContract.address);
     window.alert('Vault Set');
 
     // approve strategy
-    // await controllerContract.approveStrategy(DAI_ADDRESS, strategyContract.address);
     await controllerContract.approveStrategy(
       DAI_ADDRESS,
       strategyContractAddress
@@ -101,7 +98,6 @@ export function Strategy(): ReactElement {
     window.alert('Strategy Approved');
 
     // set strategy
-    // await controllerContract.setStrategy(DAI_ADDRESS, strategyContract.address);
     await controllerContract.setStrategy(DAI_ADDRESS, strategyContractAddress);
     window.alert('Strategy Set');
   }

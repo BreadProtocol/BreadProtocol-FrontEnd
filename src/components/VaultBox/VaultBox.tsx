@@ -1,8 +1,9 @@
-import { MouseEvent, useState, ChangeEvent } from 'react';
-import eth from 'cryptocurrency-icons/32/black/eth.png';
+import { MouseEvent, useState, ChangeEvent, useEffect, useMemo } from 'react';
+import daiLogo from 'cryptocurrency-icons/32/black/dai.png';
 import { BigNumber, ethers } from 'ethers';
 import { useSigner, useVault } from '../../hooks';
 import IERC20Artifact from '../../artifacts/contracts/yearn-v2/interfaces/IERC20.sol/IERC20.json';
+import { DAI_ADDRESS } from '../../helpers/constants';
 
 export const CryptoIcon = (props: { name: string }) => {
   const source = 'cryptocurrency-icons/32/black/' + props.name + '.png';
@@ -21,17 +22,19 @@ export const VaultDialog = (props: {
   name: string;
   source: any;
   handleChange?: (event: ChangeEvent<HTMLInputElement>) => void;
+  readonly?: boolean;
 }) => {
   return (
     <div className='VaultDialog'>
       <p>{props.direction}</p>
       <div className='VaultDialogForm'>
         <input
-          type='text'
+          type='number'
           name='asset'
           placeholder='0.0'
           value={props.amount}
           onChange={props.handleChange}
+          readOnly={props.readonly}
         />
         {/* label and image should be replaced with component */}
         {/* <CryptoIcon name='eth' /> */}
@@ -44,7 +47,7 @@ export const VaultDialog = (props: {
 
 export const VaultBox = () => {
   const [flip, setFlip] = useState<boolean>(false);
-  const [maxAssetBalance, setMaxAssetBalance] = useState<String>('0');
+  const [maxAssetBalance, setMaxAssetBalance] = useState<string>('0');
   const [depositAmount, setDepositAmount] = useState<
     number | string | readonly string[] | any
   >('');
@@ -54,6 +57,20 @@ export const VaultBox = () => {
 
   const signer = useSigner();
   const vault = useVault();
+  const dai = useMemo(
+    () => new ethers.Contract(DAI_ADDRESS, IERC20Artifact.abi, signer),
+    [signer]
+  );
+
+  useEffect(() => {
+    const getBalance = async () => {
+      const balance = await dai.balanceOf(signer!.getAddress());
+      // formatEther divides by 18 decimals
+      const balanceEthers = ethers.utils.formatEther(balance);
+      setMaxAssetBalance(balanceEthers);
+    };
+    getBalance();
+  }, [signer, dai]);
 
   const handleDepositChange = (event: ChangeEvent<HTMLInputElement>) => {
     event.preventDefault();
@@ -69,30 +86,10 @@ export const VaultBox = () => {
   // AFTER THE FIRST DEPOSIT WHICH IS SUCCESSFUL, I GET AN ERROR
   const handleDeposit = async (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
-    // dai (balance: 10.006133730236507217 DAI)
-    // DAI balance: 10.008133730236507216
-    const DAI_ADDRESS = '0x6b175474e89094c44da98b954eedeac495271d0f';
-    const dai = new ethers.Contract(DAI_ADDRESS, IERC20Artifact.abi, signer);
-    // balance
-    const balance = await dai.balanceOf(signer.getAddress());
-    // formatRther divides by 18 decimals
-    const balanceEthers = ethers.utils.formatEther(balance);
-    setMaxAssetBalance(balanceEthers);
-    window.alert(`DAI balance: ${balanceEthers}`);
     // creating new instance of dai contract
     const instanceDai = dai.connect(signer);
     window.alert(`DAI address on local network: ${instanceDai.address}`);
     // deposit amount
-    // parseEther should return BigNumber. It seems depositAmountWei is ANY
-    // parseEther multiplies by 18 decimals
-    const depositAmountWei = ethers.utils.parseEther(depositAmount);
-    // deposit multiplied by 18 decimals
-    // console log deposit = 36 decimals (I think I do not need to multiply depositAmount. It is already 18 decimals)
-    // it appears the problem is with shares. I think shares should be mutliplied by 18 decimals
-    // i think the problem is that I used formatEther which divides by 18 decimals
-    const depositAmountEthers = BigNumber.from(depositAmountWei).mul(
-      BigNumber.from(10).pow(18)
-    );
     await instanceDai.approve(vault.address, depositAmount);
     const sharesTx = await vault.deposit(depositAmount, signer.getAddress());
     const sharesTxReceipt = await sharesTx.wait();
@@ -100,14 +97,12 @@ export const VaultBox = () => {
     setSharesBalance(shares);
 
     window.alert(
-      `Deposited ${depositAmountEthers} DAI as underlying to Vault at address ${vault.address}. You receive ${sharesBalance} shares of ISUSD!`
+      `Deposited ${depositAmount} DAI as underlying to Vault at address ${vault.address}. You receive ${sharesBalance} shares of ISUSD!`
     );
   };
 
   const handleMint = async (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
-    const DAI_ADDRESS = '0x6b175474e89094c44da98b954eedeac495271d0f';
-    const dai = new ethers.Contract(DAI_ADDRESS, IERC20Artifact.abi, signer);
     const instanceDai = dai.connect(signer);
     window.alert(`DAI address on local network: ${instanceDai.address}`);
 
@@ -122,9 +117,51 @@ export const VaultBox = () => {
     const mintTx = await vault.mint(sharesToMint, signer.getAddress());
     const mintTxReceipt = await mintTx.wait();
     const depositWei = mintTxReceipt.events[1].args.amount;
-    // 1000000000000000000
     const deposit = ethers.utils.formatEther(depositWei);
     window.alert(`Deposited ${deposit} DAI!`);
+  };
+
+  const handleWithdraw = async (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    console.log('Withdrawing...');
+    const instanceDai = dai.connect(signer);
+    const userShares = await vault.balanceOf(signer.getAddress());
+    await instanceDai.approve(signer.getAddress(), userShares);
+    // error
+    const withdrawnAsset = await vault.redeem(
+      userShares,
+      signer.getAddress(),
+      signer.getAddress()
+    );
+    window.alert(`Redeemed ${withdrawnAsset} DAI`);
+  };
+
+  const handleRedeem = async (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    // const total = await vault.totalAssets();
+    // console.log('Total Assets:', total);
+    const userShareTokenBalance = await vault.balanceOf(signer.getAddress());
+    console.log(
+      'User Share tokens:',
+      ethers.utils.formatUnits(userShareTokenBalance.toString())
+    );
+    // error code: -32603
+    // 'Error: Transaction reverted: function returned an unexpected amount of data'
+    // check setting allowance of tokens
+    const userEarningsOnShare = await vault.previewRedeem(
+      BigNumber.from(1)
+      // userShareTokenBalance
+    );
+    console.log(
+      'User Earnings On Shares:',
+      ethers.utils.formatUnits(userEarningsOnShare.toString())
+    );
+    const redeemedAsset = await vault.redeem(
+      userShareTokenBalance,
+      signer.getAddress(),
+      signer.getAddress()
+    );
+    window.alert(`Redeemed ${redeemedAsset} DAI`);
   };
 
   const handleEarn = async (event: MouseEvent<HTMLButtonElement>) => {
@@ -157,12 +194,22 @@ export const VaultBox = () => {
           <VaultDialog
             amount={depositAmount}
             direction='From'
-            name='ETH'
-            source={eth}
-            // handleChange={handleChange}
+            name='DAI'
+            source={daiLogo}
+            readonly={true}
           />
           <p>Balance: {maxAssetBalance} [MAX]</p>
-          <button onClick={handleMint}>Mint</button>
+          <button
+            onClick={handleMint}
+            disabled={
+              depositAmount &&
+              BigNumber.from(ethers.utils.parseEther(depositAmount)).gte(
+                BigNumber.from(ethers.utils.parseEther(maxAssetBalance))
+              )
+            }
+          >
+            {depositAmount < maxAssetBalance ? 'Mint' : 'Insufficient Balance'}
+          </button>
         </div>
       ) : (
         // DEPOSIT ASSET
@@ -170,8 +217,8 @@ export const VaultBox = () => {
           <VaultDialog
             amount={depositAmount}
             direction='From'
-            name='ETH'
-            source={eth}
+            name='DAI'
+            source={daiLogo}
             handleChange={handleDepositChange}
           />
           <p>Balance: {maxAssetBalance} [MAX]</p>
@@ -183,13 +230,27 @@ export const VaultBox = () => {
             direction='To'
             name='ISUSD'
             source={'/bread-logo.png'}
-            // handleChange={handleChange}
+            readonly={true}
           />
-          <button onClick={handleDeposit}>Deposit</button>
+          <button
+            onClick={handleDeposit}
+            disabled={
+              depositAmount &&
+              BigNumber.from(ethers.utils.parseEther(depositAmount)).gte(
+                BigNumber.from(ethers.utils.parseEther(maxAssetBalance))
+              )
+            }
+          >
+            {depositAmount < maxAssetBalance
+              ? 'Deposit'
+              : 'Insufficient Balance'}
+          </button>
         </div>
       )}
 
       <button onClick={handleEarn}>Earn</button>
+      <button onClick={handleWithdraw}>Withdraw</button>
+      <button onClick={handleRedeem}>Redeem</button>
     </div>
   );
 };

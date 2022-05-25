@@ -69,6 +69,8 @@ export function Controller({ children }: { children: any }): ReactElement {
       );
 
       try {
+        // deployer is governance
+        // deployer is strategist
         const controllerContract = await Controller.deploy(
           TREASURY_Y_CHAD_ETH_YEARN_REWARDS
         );
